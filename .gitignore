@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# IDE
+.idea/
+
+# Generated certificates
+output/
+
+# User-provided input files (keep only default templates tracked)
+input/*
+!input/data.xlsx
+!input/template.png
+
+# Fonts are user-provided (keep folder only)
+#assets/fonts/*
+!assets/fonts/.gitkeep
+
