@@ -2,18 +2,31 @@
 
 Generate personalized certificate images from Excel using default files in the `input` folder.
 
-### Screenshots
+[![Stars](https://img.shields.io/github/stars/anburocky3/e-certificate-generator)](https://github.com/anburocky3/e-certificate-generator)
+[![Forks](https://img.shields.io/github/forks/anburocky3/e-certificate-generator)](https://github.com/anburocky3/e-certificate-generator)
+[![GitHub license](https://img.shields.io/github/license/anburocky3/e-certificate-generator)](https://github.com/anburocky3/e-certificate-generator)
+![Anbuselvan Rocky Twitter](https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Fgithub.com%2Fanburocky3%2Fe-certificate-generator)
+[![Support Server](https://img.shields.io/discord/742347296091537448.svg?label=Discord&logo=Discord&colorB=7289da)](https://discord.gg/6ktMR65YMy)
+[![Cyberdude youtube](https://img.shields.io/youtube/channel/subscribers/UCteUj8bL1ppZcS70UCWrVfw?style=social)](https://www.youtube.com/c/cyberdudenetworks)
 
-1. Simple commands to run the script with default inputs:
+![House Rent app](docs/banner.png)
+
+Simple commands to run the script with default inputs:
 
 ```powershell
 python main.py --excel input/data.xlsx --template input/template.png --output-dir output --font-size 40 --color FFFFFF --overwrite
 ```
 
+
+### Screenshots
+
 1. For each user which is read from the Excel file, a certificate is generated with their name and saved in the `output` folder. The script can be customized with various flags for font size, color, and placement.
-2. ![Sample Certificates](/docs/screenshots/2.png)
-3. So, if you have an Excel file with 50 names, you will get 50 personalized certificate images in the output folder after running the script.
-4. ![Sample Certificates](/docs/screenshots/1.png)
+
+> ![Sample Certificates](/docs/screenshots/2.png)
+
+2. So, if you have an Excel file with 50 names, you will get 50 personalized certificate images in the output folder after running the script.
+
+> ![Sample Certificates](/docs/screenshots/1.png)
 
 
 
