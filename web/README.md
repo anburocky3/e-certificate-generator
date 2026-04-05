@@ -7,6 +7,10 @@ This module is the user-facing certificate download portal.
 ![CERTIFICATE DOWNLOAD](/docs/screenshots/4.png)
 ![CERTIFICATE](/docs/screenshots/2.png)
 
+> Host can view download status on the dashboard at `/host/status`:
+> 
+> ![Host Dashboard](/docs/screenshots/5.png)
+
 
 ## Stack
 
