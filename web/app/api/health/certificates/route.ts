@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
+import { HOST_AUTH_COOKIE_NAME, isAuthenticatedToken } from "@/lib/auth";
 import { loadCertificateIndex, readCertificateFile } from "@/lib/certificates";
 
 export const runtime = "nodejs";
@@ -12,7 +14,13 @@ type FileCheck = {
   sampledIds: string[];
 };
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const token = request.cookies.get(HOST_AUTH_COOKIE_NAME)?.value;
+
+  if (!isAuthenticatedToken(token)) {
+    return NextResponse.json({ ok: false, message: "Unauthorized." }, { status: 401 });
+  }
+
   const checkedAt = new Date().toISOString();
 
   try {

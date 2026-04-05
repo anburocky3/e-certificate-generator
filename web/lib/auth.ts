@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 
 export const AUTH_COOKIE_NAME = "certificate_portal_session";
+export const HOST_AUTH_COOKIE_NAME = "certificate_host_session";
 export const DEFAULT_SESSION_MAX_AGE_SECONDS = 60 * 60 * 8;
 
 type AuthCookieOptions = {
@@ -13,6 +14,10 @@ type AuthCookieOptions = {
 
 export function getConfiguredPin(): string {
   return String(process.env.CERT_PORTAL_PIN || "123456").trim();
+}
+
+export function getConfiguredHostPin(): string {
+  return String(process.env.CERT_HOST_PORTAL_PIN || process.env.CERT_PORTAL_PIN || "123456").trim();
 }
 
 export function getAuthSecret(): string {
