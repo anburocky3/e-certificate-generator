@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const index = await loadCertificateIndex();
+    const index = await loadCertificateIndex({ origin: request.nextUrl.origin });
     const record = findCertificateRecord(index.records, parsed.data);
 
     if (!record) {

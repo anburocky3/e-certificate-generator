@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
   const checkedAt = new Date().toISOString();
 
   try {
-    const index = await loadCertificateIndex();
+    const index = await loadCertificateIndex({ origin: request.nextUrl.origin });
     const sampleRecords = index.records.slice(0, 3);
 
     const fileCheck: FileCheck = {
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     const fileErrors: string[] = [];
     for (const record of sampleRecords) {
       try {
-        await readCertificateFile(record.file_name);
+        await readCertificateFile(record.file_name, { origin: request.nextUrl.origin });
         fileCheck.passed += 1;
       } catch (error) {
         fileCheck.failed += 1;

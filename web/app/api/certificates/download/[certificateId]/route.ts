@@ -39,14 +39,14 @@ export async function GET(request: NextRequest, context: RouteContext) {
   }
 
   try {
-    const index = await loadCertificateIndex();
+    const index = await loadCertificateIndex({ origin: request.nextUrl.origin });
     const record = findCertificateById(index.records, certificateId);
 
     if (!record) {
       return NextResponse.json({ message: "Certificate not found." }, { status: 404 });
     }
 
-    const imageBuffer = await readCertificateFile(record.file_name);
+    const imageBuffer = await readCertificateFile(record.file_name, { origin: request.nextUrl.origin });
     const bytes = Uint8Array.from(imageBuffer);
     const responseBody = new Blob([bytes], { type: "image/png" });
 
