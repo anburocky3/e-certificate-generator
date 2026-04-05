@@ -2,6 +2,12 @@
 
 This module is the user-facing certificate download portal.
 
+### Screenshots
+![Login Page](/docs/screenshots/3.png)
+![CERTIFICATE DOWNLOAD](/docs/screenshots/4.png)
+![CERTIFICATE](/docs/screenshots/2.png)
+
+
 ## Stack
 
 - Next.js App Router
@@ -93,3 +99,8 @@ Then set the web app environment variables to:
 - `CERTIFICATE_OUTPUT_DIR=certificates`
 - `CERTIFICATE_INDEX_PATH=certificates/index.json`
 
+
+### LICENSE - [MIT](../LICENSE)    
+
+### Author:
+- [Anbuselvan Annamalai](https://fb.com/anburocky3)

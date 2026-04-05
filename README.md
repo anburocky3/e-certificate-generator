@@ -1,5 +1,16 @@
 # E-Certificate Platform
 
+Generate personalized certificates from Excel data and a template image, then allow recipients to securely look up and download their certificates via a web portal.
+
+[![Stars](https://img.shields.io/github/stars/anburocky3/e-certificate-generator)](https://github.com/anburocky3/e-certificate-generator)
+[![Forks](https://img.shields.io/github/forks/anburocky3/e-certificate-generator)](https://github.com/anburocky3/e-certificate-generator)
+[![GitHub license](https://img.shields.io/github/license/anburocky3/e-certificate-generator)](https://github.com/anburocky3/e-certificate-generator)
+![Anbuselvan Rocky Twitter](https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Fgithub.com%2Fanburocky3%2Fe-certificate-generator)
+[![Support Server](https://img.shields.io/discord/742347296091537448.svg?label=Discord&logo=Discord&colorB=7289da)](https://discord.gg/6ktMR65YMy)
+[![Cyberdude youtube](https://img.shields.io/youtube/channel/subscribers/UCteUj8bL1ppZcS70UCWrVfw?style=social)](https://www.youtube.com/c/cyberdudenetworks)
+
+![House Rent app](docs/banner.png)
+
 This project is now organized into **2 modules**:
 
 1. **Certificate Generation Module (Python CLI)**
@@ -49,10 +60,7 @@ python -m certificate_generator
 - Generate certificates first, then run the web app.
 - If lookup fails due to missing manifest, re-run Python generation to rebuild `output/index.json`.
 
-## License
-
-[MIT](LICENSE)
-3. App returns and downloads the matched certificate image.
+App returns and downloads the matched certificate image.
 npm run dev
 
 - `--name-column`, `--roll-column`, `--email-column`
@@ -74,9 +82,15 @@ Generation writes:
   - `email`
   - `file_name`
 
-## Module 2: Certificate Download App (Next.js)
+### Screenshots
 
-See `web/README.md` for detailed module-specific instructions.
+1. For each user which is read from the Excel file, a certificate is generated with their name and saved in the `output` folder. The script can be customized with various flags for font size, color, and placement.
+
+> ![Sample Certificates](/docs/screenshots/2.png)
+
+2. So, if you have an Excel file with 50 names, you will get 50 personalized certificate images in the output folder after running the script.
+
+> ![Sample Certificates](/docs/screenshots/1.png)
 
 ### Quick start
 ### Example with options
@@ -104,6 +118,11 @@ python main.py --start-row 2 --end-row 51
 ```powershell
 python main.py --output-dir web/public/certificates --overwrite
 ```
+
+## Module 2: Certificate Download App (Next.js)
+
+See [web/README.md](/web/README.md) for detailed module-specific instructions.
+
 
 ### License: [MIT](/LICENSE)
 
