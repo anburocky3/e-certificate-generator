@@ -15,6 +15,11 @@ export type CertificateRecord = {
   file_name: string;
   roll_no?: string | null;
   email?: string | null;
+  downloaded?: boolean;
+  downloaded_at?: string | null;
+  download_count?: number;
+  failed_attempts?: number;
+  last_failure_reason?: string | null;
 };
 
 export type CertificateIndex = {
@@ -77,6 +82,19 @@ function buildPublicAssetUrl(origin: string, assetPath: string): string {
   return new URL(`/${cleanedPath}`, origin).toString();
 }
 
+function shouldReadFromFilesystem(): boolean {
+  const mode = String(process.env.CERTIFICATE_STORAGE_MODE || "").trim().toLowerCase();
+  if (mode === "http") {
+    return false;
+  }
+
+  if (process.env.VERCEL === "1" || process.env.NODE_ENV === "production") {
+    return false;
+  }
+
+  return true;
+}
+
 function getManifestPathCandidates(): string[] {
   const configured = process.env.CERTIFICATE_INDEX_PATH?.trim() || DEFAULT_MANIFEST_PATH;
   const candidates = [
@@ -107,6 +125,33 @@ export function normalizeCertificateId(value: unknown): string {
   return normalizeLookup(value);
 }
 
+function toNonNegativeInteger(value: unknown): number {
+  const num = Number(value);
+  if (!Number.isFinite(num)) {
+    return 0;
+  }
+
+  const normalized = Math.floor(num);
+  return normalized > 0 ? normalized : 0;
+}
+
+function normalizeDownloadRecordFields(record: CertificateRecord): CertificateRecord {
+  const downloadCount = toNonNegativeInteger(record.download_count);
+  const failedAttempts = toNonNegativeInteger(record.failed_attempts);
+  const downloadedFlag = record.downloaded === true || downloadCount > 0;
+  const downloadedAt = typeof record.downloaded_at === "string" ? record.downloaded_at : null;
+  const lastFailureReason = typeof record.last_failure_reason === "string" ? record.last_failure_reason : null;
+
+  return {
+    ...record,
+    downloaded: downloadedFlag,
+    downloaded_at: downloadedAt,
+    download_count: downloadCount,
+    failed_attempts: failedAttempts,
+    last_failure_reason: lastFailureReason,
+  };
+}
+
 export async function loadCertificateIndex(options?: CertificateReadOptions): Promise<CertificateIndex> {
   const attemptedPaths: string[] = [];
   const failureMessages: string[] = [];
@@ -122,6 +167,8 @@ export async function loadCertificateIndex(options?: CertificateReadOptions): Pr
         failureMessages.push(`${manifestPath}: invalid records array`);
         continue;
       }
+
+      parsed.records = parsed.records.map((record: CertificateRecord) => normalizeDownloadRecordFields(record));
 
       return parsed as CertificateIndex;
     } catch (error) {
@@ -143,7 +190,9 @@ export async function loadCertificateIndex(options?: CertificateReadOptions): Pr
         if (!parsed || !Array.isArray((parsed as { records?: unknown }).records)) {
           failureMessages.push(`${manifestUrl}: invalid records array`);
         } else {
-          return parsed as CertificateIndex;
+          const parsedIndex = parsed as CertificateIndex;
+          parsedIndex.records = parsedIndex.records.map((record) => normalizeDownloadRecordFields(record));
+          return parsedIndex;
         }
       }
     } catch (error) {
@@ -222,3 +271,57 @@ export async function readCertificateFile(fileName: string, options?: Certificat
 
   throw new Error(`Certificate file is unavailable. ${errors.join(" | ")}`);
 }
+
+export async function markCertificateDownloadedInManifest(certificateId: string): Promise<void> {
+  if (!shouldReadFromFilesystem()) {
+    return;
+  }
+
+  const normalizedId = normalizeCertificateId(certificateId);
+  if (!normalizedId) {
+    return;
+  }
+
+  for (const manifestPath of getManifestPathCandidates()) {
+    try {
+      const raw = await fs.readFile(manifestPath, "utf8");
+      const parsed = JSON.parse(raw) as Partial<CertificateIndex>;
+      if (!parsed || !Array.isArray(parsed.records)) {
+        continue;
+      }
+
+      const now = new Date().toISOString();
+      let didUpdate = false;
+
+      const nextRecords = parsed.records.map((record) => {
+        const typedRecord = normalizeDownloadRecordFields(record as CertificateRecord);
+        if (normalizeCertificateId(typedRecord.certificate_id) !== normalizedId) {
+          return typedRecord;
+        }
+
+        didUpdate = true;
+        return {
+          ...typedRecord,
+          downloaded: true,
+          downloaded_at: now,
+          download_count: (typedRecord.download_count || 0) + 1,
+        };
+      });
+
+      if (!didUpdate) {
+        continue;
+      }
+
+      const nextPayload = {
+        ...parsed,
+        records: nextRecords,
+      };
+
+      await fs.writeFile(manifestPath, JSON.stringify(nextPayload, null, 2), "utf8");
+      return;
+    } catch {
+      // Ignore write errors (e.g. read-only FS on serverless) and try next candidate.
+    }
+  }
+}
+

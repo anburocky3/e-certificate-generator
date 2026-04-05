@@ -5,6 +5,7 @@ import { AUTH_COOKIE_NAME, isAuthenticatedToken } from "@/lib/auth";
 import {
   findCertificateById,
   loadCertificateIndex,
+  markCertificateDownloadedInManifest,
   readCertificateFile,
 } from "@/lib/certificates";
 import { getCertificateDownloadExpiryDate, isCertificateDownloadExpired } from "@/lib/download-expiry";
@@ -47,6 +48,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
     }
 
     const imageBuffer = await readCertificateFile(record.file_name, { origin: request.nextUrl.origin });
+    await markCertificateDownloadedInManifest(record.certificate_id).catch(() => {
+      // Ignore manifest update failures (read-only FS on serverless).
+    });
+
     const bytes = Uint8Array.from(imageBuffer);
     const responseBody = new Blob([bytes], { type: "image/png" });
 
