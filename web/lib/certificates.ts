@@ -96,22 +96,28 @@ function shouldReadFromFilesystem(): boolean {
 }
 
 function getManifestPathCandidates(): string[] {
+  if (!shouldReadFromFilesystem()) {
+    return [];
+  }
+
   const configured = process.env.CERTIFICATE_INDEX_PATH?.trim() || DEFAULT_MANIFEST_PATH;
   const candidates = [
     ...toFilesystemCandidates(configured).map((candidate) => resolveWebPath(candidate)),
     getManifestPath(),
-    resolveWebPath("../output/index.json"),
   ];
 
   return [...new Set(candidates)];
 }
 
 function getOutputDirCandidates(): string[] {
+  if (!shouldReadFromFilesystem()) {
+    return [];
+  }
+
   const configured = process.env.CERTIFICATE_OUTPUT_DIR?.trim() || DEFAULT_OUTPUT_DIR;
   const candidates = [
     ...toFilesystemCandidates(configured).map((candidate) => resolveWebPath(candidate)),
     getOutputDir(),
-    resolveWebPath("../output"),
   ];
 
   return [...new Set(candidates)];

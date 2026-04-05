@@ -230,9 +230,9 @@
       "file_name": "keerthika_d_certificate_5001.png",
       "roll_no": "2303310924322010",
       "email": "dkeerthika95@gmail.com",
-      "downloaded": false,
-      "downloaded_at": null,
-      "download_count": 0,
+      "downloaded": true,
+      "downloaded_at": "2026-04-05T15:56:07.938Z",
+      "download_count": 1,
       "failed_attempts": 0,
       "last_failure_reason": null
     },

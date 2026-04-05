@@ -8,6 +8,7 @@ import {
   markCertificateDownloadedInManifest,
   readCertificateFile,
 } from "@/lib/certificates";
+import { recordDownloadEvent } from "@/lib/download-tracking-store";
 import { getCertificateDownloadExpiryDate, isCertificateDownloadExpired } from "@/lib/download-expiry";
 
 export const runtime = "nodejs";
@@ -48,6 +49,12 @@ export async function GET(request: NextRequest, context: RouteContext) {
     }
 
     const imageBuffer = await readCertificateFile(record.file_name, { origin: request.nextUrl.origin });
+    await recordDownloadEvent({
+      certificateId: record.certificate_id,
+      status: "downloaded",
+    }).catch(() => {
+      // Ignore KV failures so certificate delivery remains available.
+    });
     await markCertificateDownloadedInManifest(record.certificate_id).catch(() => {
       // Ignore manifest update failures (read-only FS on serverless).
     });
@@ -62,6 +69,15 @@ export async function GET(request: NextRequest, context: RouteContext) {
       },
     });
   } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    await recordDownloadEvent({
+      certificateId,
+      status: "failed",
+      reason,
+    }).catch(() => {
+      // Ignore KV failures so original API error is preserved.
+    });
+
     console.error("Certificate download failed:", error);
     return NextResponse.json({ message: "Certificate file is unavailable." }, { status: 500 });
   }

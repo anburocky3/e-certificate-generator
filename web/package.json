@@ -9,6 +9,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@upstash/redis": "^1.34.3",
     "@hookform/resolvers": "latest",
     "next": "latest",
     "react": "latest",
