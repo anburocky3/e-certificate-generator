@@ -99,6 +99,11 @@ python main.py --start-row 2 --end-row 51
 - Default style is Pacifico (if available), white text, 40px
 - Use `--name-y` for exact vertical placement, or `--name-zone-top` / `--name-zone-bottom` for zone placement
 - `input/*` user files and `assets/fonts/*` are git-ignored (only default placeholders are tracked)
+> If you want to generate those certificates on the app frontend: 
+
+```powershell
+python main.py --output-dir web/public/certificates --overwrite
+```
 
 ### License: [MIT](/LICENSE)
 
