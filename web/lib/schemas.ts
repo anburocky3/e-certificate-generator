@@ -10,14 +10,39 @@ export const pinSchema = z.object({
 
 export const lookupSchema = z
   .object({
-    rollNo: z.string().trim().max(80, "Roll number is too long.").optional(),
-    email: z.string().trim().email("Enter a valid email address.").optional(),
+    rollNo: z.string().trim().max(80, "Roll number is too long.").optional().or(z.literal("")),
+    email: z.string().trim().optional().or(z.literal("")),
   })
-  .refine((values) => Boolean(values.rollNo || values.email), {
-    message: "Enter a roll number or email address.",
-    path: ["rollNo"],
-  });
+  .superRefine((values, context) => {
+    const rollNo = values.rollNo?.trim() || "";
+    const email = values.email?.trim() || "";
+
+    if (!rollNo && !email) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Enter a roll number or email address.",
+        path: ["rollNo"],
+      });
+      return;
+    }
+
+    if (email) {
+      const emailCheck = z.string().email("Enter a valid email address.").safeParse(email);
+      if (!emailCheck.success) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Enter a valid email address.",
+          path: ["email"],
+        });
+      }
+    }
+  })
+  .transform((values) => ({
+    rollNo: values.rollNo?.trim() || undefined,
+    email: values.email?.trim() || undefined,
+  }));
 
 export type PinInput = z.infer<typeof pinSchema>;
-export type LookupInput = z.infer<typeof lookupSchema>;
+export type LookupFormInput = z.input<typeof lookupSchema>;
+export type LookupInput = z.output<typeof lookupSchema>;
 

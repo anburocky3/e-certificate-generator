@@ -48,7 +48,8 @@ export async function POST(request: NextRequest) {
         downloadUrl: `/api/certificates/download/${encodeURIComponent(record.certificate_id)}`,
       },
     });
-  } catch {
+  } catch (error) {
+    console.error("Certificate search failed:", error);
     return NextResponse.json(
       { message: "Certificate index is unavailable. Ask the host to regenerate certificates." },
       { status: 500 },

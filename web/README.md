@@ -42,6 +42,19 @@ npm run lint
 npm run build
 ```
 
+## Health Check Endpoint
+
+Use this to verify manifest and sample certificate files after deployment:
+
+- `GET /api/health/certificates`
+
+It returns:
+
+- `200` with `ok: true` when manifest + sampled files are readable
+- `503` with `ok: false` when manifest/files are unavailable
+
+This is useful on Vercel to confirm your `public/certificates/index.json` and image files are packaged correctly.
+
 ## Environment Variables
 
 - `CERT_PORTAL_PIN`: Shared host PIN.

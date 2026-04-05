@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
-import { lookupSchema, type LookupInput } from "@/lib/schemas";
+import { lookupSchema, type LookupFormInput, type LookupInput } from "@/lib/schemas";
 
 type SearchResponseRecord = {
     certificateId: string;
@@ -30,7 +30,7 @@ export function LookupForm() {
         register,
         handleSubmit,
         formState: {errors, isSubmitting},
-    } = useForm<LookupInput>({
+    } = useForm<LookupFormInput, unknown, LookupInput>({
         resolver: zodResolver(lookupSchema),
         defaultValues: {
             rollNo: "",

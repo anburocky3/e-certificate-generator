@@ -22,13 +22,35 @@ export function resolveWebPath(value: string): string {
     : path.resolve(/* turbopackIgnore: true */ process.cwd(), value);
 }
 
-export function getOutputDir(): string {
-  return resolveWebPath(process.env.CERTIFICATE_OUTPUT_DIR || "../output");
+function getOutputDir(): string {
+  return resolveWebPath(process.env.CERTIFICATE_OUTPUT_DIR || "public/certificates");
 }
 
-export function getManifestPath(): string {
-  const configured = process.env.CERTIFICATE_INDEX_PATH || "../output/index.json";
+function getManifestPath(): string {
+  const configured = process.env.CERTIFICATE_INDEX_PATH || "public/certificates/index.json";
   return resolveWebPath(configured);
+}
+
+function getManifestPathCandidates(): string[] {
+  const configured = process.env.CERTIFICATE_INDEX_PATH?.trim();
+  const candidates = [
+    getManifestPath(),
+    resolveWebPath(configured || "public/certificates/index.json"),
+    resolveWebPath("../output/index.json"),
+  ];
+
+  return [...new Set(candidates)];
+}
+
+function getOutputDirCandidates(): string[] {
+  const configured = process.env.CERTIFICATE_OUTPUT_DIR?.trim();
+  const candidates = [
+    getOutputDir(),
+    resolveWebPath(configured || "public/certificates"),
+    resolveWebPath("../output"),
+  ];
+
+  return [...new Set(candidates)];
 }
 
 export function normalizeLookup(value: unknown): string {
@@ -40,15 +62,31 @@ export function normalizeCertificateId(value: unknown): string {
 }
 
 export async function loadCertificateIndex(): Promise<CertificateIndex> {
-  const manifestPath = getManifestPath();
-  const raw = await fs.readFile(manifestPath, "utf8");
-  const parsed = JSON.parse(raw);
+  const attemptedPaths: string[] = [];
+  const failureMessages: string[] = [];
 
-  if (!parsed || !Array.isArray(parsed.records)) {
-    throw new Error("Certificate index file is invalid.");
+  for (const manifestPath of getManifestPathCandidates()) {
+    attemptedPaths.push(manifestPath);
+
+    try {
+      const raw = await fs.readFile(manifestPath, "utf8");
+      const parsed = JSON.parse(raw);
+
+      if (!parsed || !Array.isArray(parsed.records)) {
+        failureMessages.push(`${manifestPath}: invalid records array`);
+        continue;
+      }
+
+      return parsed as CertificateIndex;
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      failureMessages.push(`${manifestPath}: ${detail}`);
+    }
   }
 
-  return parsed as CertificateIndex;
+  throw new Error(
+    `Certificate index file is unavailable. Attempted: ${attemptedPaths.join(" | ")}. Details: ${failureMessages.join(" | ")}`,
+  );
 }
 
 export function findCertificateRecord(
@@ -58,20 +96,15 @@ export function findCertificateRecord(
   const normalizedRollNo = normalizeLookup(rollNo);
   const normalizedEmail = normalizeLookup(email);
 
-  return records.find((record) => {
-    const recordRollNo = normalizeLookup(record.roll_no);
-    const recordEmail = normalizeLookup(record.email);
+  if (normalizedRollNo) {
+    return records.find((record) => normalizeLookup(record.roll_no) === normalizedRollNo);
+  }
 
-    if (normalizedEmail && normalizedRollNo) {
-      return recordEmail === normalizedEmail && recordRollNo === normalizedRollNo;
-    }
+  if (normalizedEmail) {
+    return records.find((record) => normalizeLookup(record.email) === normalizedEmail);
+  }
 
-    if (normalizedEmail && recordEmail === normalizedEmail) {
-      return true;
-    }
-
-    return Boolean(normalizedRollNo && recordRollNo === normalizedRollNo);
-  });
+  return undefined;
 }
 
 export function findCertificateById(
@@ -83,12 +116,22 @@ export function findCertificateById(
 }
 
 export async function readCertificateFile(fileName: string): Promise<Buffer> {
-  const outputDir = getOutputDir();
-  const resolvedFilePath = path.resolve(outputDir, fileName);
-  const relativePath = path.relative(path.resolve(outputDir), resolvedFilePath);
-  if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
-    throw new Error("Invalid certificate path.");
+  const errors: string[] = [];
+
+  for (const outputDir of getOutputDirCandidates()) {
+    const resolvedFilePath = path.resolve(outputDir, fileName);
+    const relativePath = path.relative(path.resolve(outputDir), resolvedFilePath);
+    if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
+      throw new Error("Invalid certificate path.");
+    }
+
+    try {
+      return await fs.readFile(resolvedFilePath);
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      errors.push(`${resolvedFilePath}: ${detail}`);
+    }
   }
 
-  return fs.readFile(resolvedFilePath);
+  throw new Error(`Certificate file is unavailable. ${errors.join(" | ")}`);
 }

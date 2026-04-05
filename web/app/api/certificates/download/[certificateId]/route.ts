@@ -54,7 +54,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
         "Content-Disposition": `attachment; filename="${record.file_name}"`,
       },
     });
-  } catch {
+  } catch (error) {
+    console.error("Certificate download failed:", error);
     return NextResponse.json({ message: "Certificate file is unavailable." }, { status: 500 });
   }
 }
