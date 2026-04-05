@@ -1,6 +1,9 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
+const DEFAULT_OUTPUT_DIR = "certificates";
+const DEFAULT_MANIFEST_PATH = "certificates/index.json";
+
 export type CertificateRecord = {
   certificate_id: string;
   name: string;
@@ -23,19 +26,39 @@ export function resolveWebPath(value: string): string {
 }
 
 function getOutputDir(): string {
-  return resolveWebPath(process.env.CERTIFICATE_OUTPUT_DIR || "public/certificates");
+  return resolveWebPath(process.env.CERTIFICATE_OUTPUT_DIR || DEFAULT_OUTPUT_DIR);
 }
 
 function getManifestPath(): string {
-  const configured = process.env.CERTIFICATE_INDEX_PATH || "public/certificates/index.json";
+  const configured = process.env.CERTIFICATE_INDEX_PATH || DEFAULT_MANIFEST_PATH;
   return resolveWebPath(configured);
 }
 
+function toFilesystemCandidates(rawPath: string): string[] {
+  if (path.isAbsolute(rawPath)) {
+    return [rawPath];
+  }
+
+  const normalized = rawPath.replace(/\\/g, "/").replace(/^\/+/, "");
+  if (!normalized) {
+    return [];
+  }
+
+  const candidates = [normalized];
+  if (normalized.startsWith("public/")) {
+    candidates.push(normalized.slice("public/".length));
+  } else {
+    candidates.push(`public/${normalized}`);
+  }
+
+  return [...new Set(candidates)];
+}
+
 function getManifestPathCandidates(): string[] {
-  const configured = process.env.CERTIFICATE_INDEX_PATH?.trim();
+  const configured = process.env.CERTIFICATE_INDEX_PATH?.trim() || DEFAULT_MANIFEST_PATH;
   const candidates = [
+    ...toFilesystemCandidates(configured).map((candidate) => resolveWebPath(candidate)),
     getManifestPath(),
-    resolveWebPath(configured || "public/certificates/index.json"),
     resolveWebPath("../output/index.json"),
   ];
 
@@ -43,10 +66,10 @@ function getManifestPathCandidates(): string[] {
 }
 
 function getOutputDirCandidates(): string[] {
-  const configured = process.env.CERTIFICATE_OUTPUT_DIR?.trim();
+  const configured = process.env.CERTIFICATE_OUTPUT_DIR?.trim() || DEFAULT_OUTPUT_DIR;
   const candidates = [
+    ...toFilesystemCandidates(configured).map((candidate) => resolveWebPath(candidate)),
     getOutputDir(),
-    resolveWebPath(configured || "public/certificates"),
     resolveWebPath("../output"),
   ];
 

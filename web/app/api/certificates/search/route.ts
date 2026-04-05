@@ -6,6 +6,8 @@ import { findCertificateRecord, loadCertificateIndex } from "@/lib/certificates"
 import { getCertificateDownloadExpiryDate, isCertificateDownloadExpired } from "@/lib/download-expiry";
 import { lookupSchema } from "@/lib/schemas";
 
+export const runtime = "nodejs";
+
 export async function POST(request: NextRequest) {
   const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
   if (!isAuthenticatedToken(token)) {

@@ -9,6 +9,8 @@ import {
 } from "@/lib/certificates";
 import { getCertificateDownloadExpiryDate, isCertificateDownloadExpired } from "@/lib/download-expiry";
 
+export const runtime = "nodejs";
+
 type RouteContext = {
   params: Promise<{ certificateId: string }>;
 };
