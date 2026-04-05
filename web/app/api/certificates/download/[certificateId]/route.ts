@@ -7,6 +7,7 @@ import {
   loadCertificateIndex,
   readCertificateFile,
 } from "@/lib/certificates";
+import { getCertificateDownloadExpiryDate, isCertificateDownloadExpired } from "@/lib/download-expiry";
 
 type RouteContext = {
   params: Promise<{ certificateId: string }>;
@@ -22,6 +23,17 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const certificateId = decodeURIComponent(String(routeParams?.certificateId || "")).trim();
   if (!certificateId) {
     return NextResponse.json({ message: "Invalid certificate id." }, { status: 422 });
+  }
+
+  if (isCertificateDownloadExpired()) {
+    const expiryDate = getCertificateDownloadExpiryDate();
+    return NextResponse.json(
+      {
+        message: "Certificate downloads have expired.",
+        expiredAt: expiryDate?.toISOString() || null,
+      },
+      { status: 410 },
+    );
   }
 
   try {

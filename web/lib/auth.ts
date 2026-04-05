@@ -29,38 +29,56 @@ export function createSessionToken(maxAgeSeconds = DEFAULT_SESSION_MAX_AGE_SECON
   return `${payload}.${signPayload(payload)}`;
 }
 
-export function verifySessionToken(token: string | undefined): boolean {
+function parseSessionToken(token: string | undefined): number | null {
   if (!token) {
-    return false;
+    return null;
   }
 
   const [expiresAtText, signature] = token.split(".");
   if (!expiresAtText || !signature) {
-    return false;
+    return null;
   }
 
   const expectedSignature = signPayload(expiresAtText);
   const expectedBuffer = Buffer.from(expectedSignature);
   const receivedBuffer = Buffer.from(signature);
   if (expectedBuffer.length !== receivedBuffer.length) {
-    return false;
+    return null;
   }
 
   if (!crypto.timingSafeEqual(expectedBuffer, receivedBuffer)) {
-    return false;
+    return null;
   }
 
   const expiresAt = Number(expiresAtText);
-  const isExpired = Math.floor(Date.now() / 1000) > expiresAt;
-  if (!Number.isFinite(expiresAt) || isExpired) {
+  if (!Number.isFinite(expiresAt)) {
+    return null;
+  }
+
+  return expiresAt;
+}
+
+export function verifySessionToken(token: string | undefined): boolean {
+  const expiryDate = getSessionExpiryDate(token);
+  if (!expiryDate) {
     return false;
   }
 
-  return true;
+  const isExpired = Date.now() > expiryDate.getTime();
+  return !isExpired;
 }
 
 export function isAuthenticatedToken(token: string | undefined): boolean {
   return verifySessionToken(token);
+}
+
+export function getSessionExpiryDate(token: string | undefined): Date | null {
+  const expiresAt = parseSessionToken(token);
+  if (!expiresAt) {
+    return null;
+  }
+
+  return new Date(expiresAt * 1000);
 }
 
 export function authCookieOptions(maxAgeSeconds = DEFAULT_SESSION_MAX_AGE_SECONDS): AuthCookieOptions {

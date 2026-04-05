@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 
 import { AUTH_COOKIE_NAME, isAuthenticatedToken } from "@/lib/auth";
 import { findCertificateRecord, loadCertificateIndex } from "@/lib/certificates";
+import { getCertificateDownloadExpiryDate, isCertificateDownloadExpired } from "@/lib/download-expiry";
 import { lookupSchema } from "@/lib/schemas";
 
 export async function POST(request: NextRequest) {
@@ -18,6 +19,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { message: parsed.error.issues[0]?.message || "Invalid lookup request." },
       { status: 422 },
+    );
+  }
+
+  if (isCertificateDownloadExpired()) {
+    const expiryDate = getCertificateDownloadExpiryDate();
+    return NextResponse.json(
+      {
+        message: "Certificate downloads have expired.",
+        expiredAt: expiryDate?.toISOString() || null,
+      },
+      { status: 410 },
     );
   }
 
