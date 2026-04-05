@@ -5,6 +5,12 @@ __pycache__/
 # IDE
 .idea/
 
+# Next.js web module
+web/node_modules/
+web/.next/
+web/out/
+web/.env.local
+
 # Generated certificates
 output/
 

@@ -1,60 +1,88 @@
-# E-Certificate Generator
+# E-Certificate Platform
 
-Generate personalized certificate images from Excel using default files in the `input` folder.
+This project is now organized into **2 modules**:
 
-[![Stars](https://img.shields.io/github/stars/anburocky3/e-certificate-generator)](https://github.com/anburocky3/e-certificate-generator)
-[![Forks](https://img.shields.io/github/forks/anburocky3/e-certificate-generator)](https://github.com/anburocky3/e-certificate-generator)
-[![GitHub license](https://img.shields.io/github/license/anburocky3/e-certificate-generator)](https://github.com/anburocky3/e-certificate-generator)
-![Anbuselvan Rocky Twitter](https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Fgithub.com%2Fanburocky3%2Fe-certificate-generator)
-[![Support Server](https://img.shields.io/discord/742347296091537448.svg?label=Discord&logo=Discord&colorB=7289da)](https://discord.gg/6ktMR65YMy)
-[![Cyberdude youtube](https://img.shields.io/youtube/channel/subscribers/UCteUj8bL1ppZcS70UCWrVfw?style=social)](https://www.youtube.com/c/cyberdudenetworks)
+1. **Certificate Generation Module (Python CLI)**
+2. **Certificate Download Module (Next.js app)**
 
-![House Rent app](docs/banner.png)
+The Python CLI creates certificate images and writes a manifest (`output/index.json`).
+The Next.js app uses that manifest to allow PIN-protected lookup and download by `roll_no` or `email`.
 
-Simple commands to run the script with default inputs:
+## Project Structure
 
-```powershell
-python main.py --excel input/data.xlsx --template input/template.png --output-dir output --font-size 40 --color FFFFFF --overwrite
-```
+- `certificate_generator/` - Python generation package
+- `main.py` - compatibility entrypoint for CLI
+- `web/` - Next.js download app
+- `input/` - Excel + template inputs
+- `output/` - generated certificate PNGs + `index.json`
 
+## Module 1: Certificate Generation (Python)
 
-### Screenshots
-
-1. For each user which is read from the Excel file, a certificate is generated with their name and saved in the `output` folder. The script can be customized with various flags for font size, color, and placement.
-
-> ![Sample Certificates](/docs/screenshots/2.png)
-
-2. So, if you have an Excel file with 50 names, you will get 50 personalized certificate images in the output folder after running the script.
-
-> ![Sample Certificates](/docs/screenshots/1.png)
-
-
-
-## Input files
-
-- `input/data.xlsx`
-- `input/template.png`
-
-`data.xlsx` should include a `Name` column in the header row.
-You can still pass other file paths with CLI flags.
-
-## Setup
+### Setup
 
 ```powershell
+cd X:\git-projects\e-certificate-generator
 python -m pip install -r requirements.txt
 ```
 
-## Generate certificates
+### Required Excel columns
+
+- `Name` (required)
+- `roll_no` (recommended for portal lookup)
+- `email` (recommended for portal lookup)
+
+The loader also accepts common aliases like `Roll No`, `Roll Number`, and `Email`.
+
+### Run (default inputs)
 
 ```powershell
+cd X:\git-projects\e-certificate-generator
 python main.py
 ```
 
-This uses default inputs (`input/data.xlsx`, `input/template.png`) and writes files to `output`.
-
-## Optional flags
+or:
 
 ```powershell
+cd X:\git-projects\e-certificate-generator
+python -m certificate_generator
+```
+- Generate certificates first, then run the web app.
+- If lookup fails due to missing manifest, re-run Python generation to rebuild `output/index.json`.
+
+## License
+
+[MIT](LICENSE)
+3. App returns and downloads the matched certificate image.
+npm run dev
+
+- `--name-column`, `--roll-column`, `--email-column`
+- `--start-row`, `--end-row`, `--limit`
+- `--font`, `--font-size`, `--color`
+- `--name-x`, `--name-y`
+- `--name-zone-top`, `--name-zone-bottom`, `--name-zone-padding`
+- `--dry-run`, `--overwrite`
+
+### Output contract
+
+Generation writes:
+
+- `output/certificate_001_<name>.png` (and more)
+- `output/index.json` with records containing:
+  - `certificate_id`
+  - `name`
+  - `roll_no`
+  - `email`
+  - `file_name`
+
+## Module 2: Certificate Download App (Next.js)
+
+See `web/README.md` for detailed module-specific instructions.
+
+### Quick start
+### Example with options
+
+```powershell
+cd X:\git-projects\e-certificate-generator
 python main.py --excel input/data.xlsx --template input/template.png --output-dir output --font-size 40 --color FFFFFF --overwrite
 ```
 
